@@ -1,4 +1,163 @@
-The following code if for a traffic intersection model, it can be implemented however make sure to obtain a database and change the file location.
-For the arduino code, connect an Arduino board and run this code in 'arduino ide' software. Make sure to upload the code to your arduino chip and then close the ide program. then you may run the python code. keep the arduino connected via usb to the host computer at all times.
-Arduino is solely used to control leds with ease, you may use any other board, code will differ.
-This program is optimized to use nvidea GPU's CUDA framework. You may modify the program to work better with other gpus. there is also the possibility to shift to CPU mode only which will be slower.
+# YOLO-Based Adaptive Traffic Intersection Controller
+
+## Overview
+
+This project presents a real-time adaptive traffic signal control system based on computer vision. The system uses YOLO-based object detection to estimate traffic density from live camera feeds and dynamically adjusts traffic signal green durations accordingly. A host computer performs vision processing and decision-making, while an Arduino microcontroller executes signal control based on received timing data.
+
+The system is intended as a prototype and research-oriented implementation for experimentation, evaluation, and further development. It is not designed for deployment in real-world traffic infrastructure without modications.
+
+---
+
+## System Architecture
+
+The system is divided into two primary components: a host computer responsible for perception and control logic, and a microcontroller responsible for physical signal execution.
+
+### Host Computer (Python)
+
+The host computer performs the following functions:
+
+- Captures live video streams from multiple cameras
+- Executes YOLO-based object detection on each traffic approach
+- Counts detected vehicles per approach
+- Computes proportional green-light durations based on traffic density
+- Transmits timing data to the microcontroller via serial communication
+
+### Microcontroller (Arduino)
+
+The microcontroller performs the following functions:
+
+- Receives timing data from the host computer
+- Controls traffic signal phase sequencing
+- Displays system status and countdown timers on an I2C LCD
+- Executes traffic phases according to received timing parameters
+
+---
+
+## Key Features
+
+- Multi-camera traffic monitoring (up to four approaches)
+- YOLO-based vehicle detection
+- Adaptive green-light timing proportional to detected traffic
+- Serial communication with millisecond-level timing precision
+- I2C LCD status display with startup diagnostics
+- Safe fallback behavior when no vehicles are detected
+- Fixed upper bound of four traffic approaches
+
+---
+
+## Hardware Requirements
+
+- Arduino Uno, Nano, or Mega
+- One to four USB cameras or webcams
+- 16×2 I2C LCD (default address: `0x27`)
+- USB connection between host computer and Arduino
+- Supporting electronics for traffic signal simulation or indication
+
+---
+
+## Software Requirements
+
+### Operating System
+
+- Windows, Linux, or macOS  
+  (Windows is recommended when operating multiple USB cameras)
+
+### Python Environment
+
+- Python version 3.8 or newer
+- Virtual environment usage is recommended but non necessary
+
+### Python Dependencies
+
+- ultralytics
+- opencv-python
+- pyserial
+- numpy
+- torch
+
+---
+
+## GPU Acceleration
+
+The system supports GPU acceleration through CUDA-enabled PyTorch installations. When a compatible NVIDIA GPU is available, YOLO inference automatically executes on the GPU without requiring code changes.
+
+CPU-only execution is supported but results in reduced performance, particularly when processing multiple camera streams.
+
+---
+
+## YOLO Model Requirements
+
+A trained YOLO model file must be provided separately and placed in the project root directory. The model should be capable of detecting traffic-relevant object classes, including but not limited to:
+
+- car
+- truck
+- bus
+- motorbike
+- person
+
+The trained model file is not included in this repository.
+
+---
+
+## Arduino Firmware Requirements
+
+The Arduino firmware requires the following:
+
+- Installation of the `LiquidCrystal_I2C` library
+- Correct selection of the target board and serial port
+- Firmware upload via the Arduino IDE
+
+The firmware uses blocking delays to execute traffic phases and assumes a fixed maximum of four approaches.
+
+---
+
+## System Configuration
+
+System behavior is controlled through configuration values defined in the Python controller script, including:
+
+- Serial port selection for Arduino communication
+- Camera index mapping for traffic approaches
+- YOLO model file path
+- Total traffic cycle duration
+
+Each camera index corresponds to a single traffic approach. The total cycle duration is divided proportionally based on detected vehicle counts.
+
+---
+
+## Runtime Behavior
+
+During execution:
+
+- Live camera feeds are displayed for monitoring
+- Vehicle counts are updated continuously
+- Green-light timing values are recalculated dynamically
+- Timing data is transmitted to the Arduino in real time
+- Traffic signal phases adapt based on observed traffic density
+
+---
+
+## Serial Communication Protocol
+
+The host computer transmits traffic timing data to the Arduino using the following format:
+
+<green_ms_1>,<green_ms_2>,...,<green_ms_n>;<active_roads>\n
+
+
+Example:
+
+5000,3000,8000,4000;4
+
+
+All timing values are expressed in milliseconds. The order of values corresponds to traffic phase indexing, and the active roads parameter specifies the number of phases to be executed.
+
+---
+
+## Known Limitations
+
+- YOLO inference is serialized across camera streams
+- Performance degrades significantly on CPU-only systems
+- Arduino firmware relies on blocking delays
+- Vehicle detection is count-based only, with no tracking or ID persistence
+
+For aquiring the database, you may use the following website: https://universe.roboflow.com/
+the model will need to be trained on any database selected or created. It it recomended to do this on a powerfull computer as it is very cpu and gpu intensive.
