@@ -1,3 +1,4 @@
 The following code if for a traffic intersection model, it can be implemented however make sure to obtain a database and change the file location.
 For the arduino code, connect an Arduino board and run this code in 'arduino ide' software. Make sure to upload the code to your arduino chip and then close the ide program. then you may run the python code. keep the arduino connected via usb to the host computer at all times.
 Arduino is solely used to control leds with ease, you may use any other board, code will differ.
+This program is optimized to use nvidea GPU's CUDA framework. You may modify the program to work better with other gpus. there is also the possibility to shift to CPU mode only which will be slower.
